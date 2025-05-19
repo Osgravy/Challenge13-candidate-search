@@ -1,44 +1,33 @@
-const searchGithub = async () => {
-  try {
-    const start = Math.floor(Math.random() * 100000000) + 1;
-    // console.log(import.meta.env);
-    const response = await fetch(
-      `https://api.github.com/users?since=${start}`,
-      {
-        headers: {
-          Authorization: `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`,
-        },
-      }
-    );
-    // console.log('Response:', response);
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error('invalid API response, check the network tab');
-    }
-    // console.log('Data:', data);
-    return data;
-  } catch (err) {
-    // console.log('an error occurred', err);
-    return [];
-  }
-};
+import { GitHubUser } from '../types';
 
-const searchGithubUser = async (username: string) => {
+const fetchRandomUser = async (): Promise<GitHubUser> => {
   try {
-    const response = await fetch(`https://api.github.com/users/${username}`, {
+    // Generate a random ID between 1 and 10,000,000
+    const randomId = Math.floor(Math.random() * 10000000) + 1;
+    
+    const response = await fetch(`https://api.github.com/user/${randomId}`, {
       headers: {
         Authorization: `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`,
-      },
+        // GitHub's API requires this header for the /user endpoint
+        'User-Agent': 'Candidate-Search-App' 
+      }
     });
-    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error('invalid API response, check the network tab');
+      // If user not found (404), try again with a different ID
+      if (response.status === 404) {
+        return fetchRandomUser();
+      }
+      throw new Error(`API Error: ${response.status}`);
     }
+
+    const data: GitHubUser = await response.json();
     return data;
   } catch (err) {
-    // console.log('an error occurred', err);
-    return {};
+    console.error('Error fetching user:', err);
+    // Retry on any error
+    return fetchRandomUser();
   }
 };
 
-export { searchGithub, searchGithubUser };
+export { fetchRandomUser };
