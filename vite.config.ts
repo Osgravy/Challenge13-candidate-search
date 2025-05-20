@@ -12,5 +12,16 @@ export default defineConfig({
       'challenge13-candidate-search.onrender.com',
       'localhost' // Keep local development access
     ]
-  }
-})
+  },
+    base: '/',
+    build: {
+      outDir: 'dist',
+      emptyOutDir: true,
+      rollupOptions: {
+        input: {
+          main: './index.html'
+        }
+        }
+      }
+    }
+)
